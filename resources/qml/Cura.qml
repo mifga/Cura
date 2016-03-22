@@ -546,6 +546,9 @@ UM.MainWindow
             //: View preferences page title
             insertPage(1, catalog.i18nc("@title:tab","View"), Qt.resolvedUrl("ViewPage.qml"));
 
+            //: View preferences page title
+            insertPage(5, catalog.i18nc("@title:tab","Materials"), Qt.resolvedUrl("MaterialsPage.qml"));
+
             //Force refresh
             setPage(0);
         }
