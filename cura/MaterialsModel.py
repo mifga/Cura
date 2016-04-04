@@ -19,7 +19,13 @@ class MaterialsModel(ListModel):
     GroupRole = Qt.UserRole + 2
     VariantRole = Qt.UserRole + 3
     SupplierRole = Qt.UserRole + 4
-
+    DiameterRole = Qt.UserRole + 5
+    DensityRole = Qt.UserRole + 6
+    SpoolCostRole = Qt.UserRole + 7
+    SpoolWeightRole = Qt.UserRole + 8
+    ColorDisplayRole = Qt.UserRole + 9
+    ColorRALRole = Qt.UserRole + 10
+    LinkOrderRole = Qt.UserRole + 11
 
     def __init__(self, parent = None):
         super().__init__(parent)
@@ -30,16 +36,30 @@ class MaterialsModel(ListModel):
         self.addRoleName(self.GroupRole, "group")
         self.addRoleName(self.VariantRole, "variant")
         self.addRoleName(self.SupplierRole, "supplier")
-
+        self.addRoleName(self.DiameterRole, "diameter")
+        self.addRoleName(self.DensityRole, "density")
+        self.addRoleName(self.SpoolCostRole, "spoolCost")
+        self.addRoleName(self.SpoolWeightRole, "spoolWeight")
+        self.addRoleName(self.ColorDisplayRole, "color_display")
+        self.addRoleName(self.ColorRALRole, "color_ral")
+        self.addRoleName(self.LinkOrderRole, "link_order")
         self.loadMaterials()
 
         for material_profile in self._material_profiles:
-            general_data = material_profile.getGeneralData()
             self.appendItem({
-                "name": general_data["name"],
-                "group": general_data["type"],
-                "variant": general_data["color"],
-                "supplier": general_data["supplier"]
+                "name": material_profile.getGeneralData("name"),
+                "group": material_profile.getGeneralData("type"),
+                "variant": material_profile.getGeneralData("color"),
+                "supplier": material_profile.getGeneralData("supplier"),
+
+                "diameter":  material_profile.getMetaData("diameter"),
+                "density":  material_profile.getMetaData("density"),
+                "spoolCost":  material_profile.getMetaData("spool_cost"),
+                "spoolWeight":  material_profile.getMetaData("spool_weight"),
+
+                "colorDisplay":  material_profile.getMetaData("color_display"),
+                "colorRAL":  material_profile.getMetaData("color_ral"),
+                "linkOrder":  material_profile.getMetaData("link_order")
             })
 
     def loadMaterials(self):
@@ -84,14 +104,31 @@ class MaterialProfile(SignalEmitter):
         self._metadata = {}
         self._settings = {}
 
-    def getGeneralData(self):
-        return self._general
+        self._path = ""
 
-    def getMetaData(self):
-        return self._metadata
+    def getGeneralData(self, key=None):
+        if not key:
+            return self._general
+        elif key in self._general:
+            return self._general[key]
+        else:
+            return
 
-    def getSettingsData(self):
-        return self._settings
+    def getMetaData(self, key=None):
+        if not key:
+            return self._metadata
+        elif key in self._metadata:
+            return self._metadata[key]
+        else:
+            return
+
+    def getSettingsData(self, key=None):
+        if not key:
+            return self._settings
+        elif key in self._settings:
+            return self._settings[key]
+        else:
+            return
 
     ##  Load a serialised profile from a file.
     #
@@ -101,6 +138,7 @@ class MaterialProfile(SignalEmitter):
     #   (but the file doesn't get corrupt).
     #   \param path The path to the file to load from.
     def loadFromFile(self, path):
+        self._path = path
         f = open(path) #Open file for reading.
         serialised = f.read()
         self.unserialise(serialised, path) #Unserialise the serialised contents that we found in that file.
@@ -122,6 +160,24 @@ class MaterialProfile(SignalEmitter):
 
         if not parser.has_option("general", "version") or int(parser.get("general", "version")) != self.ProfileVersion:
             raise SettingsError.InvalidVersionError(origin)
+
+        if parser.has_option("general", "inherits"):
+            inherits = parser.get("general", "inherits") + ".cfg"
+            try:
+                path = Resources.getPath(Application.getInstance().ResourceTypes.Materials, inherits)
+            except FileNotFoundError as e:
+                # If we cannot find the file in Resources, try and see if it can be found relative to this file.
+                # This is primarily used by the unit tests.
+                path = os.path.join(os.path.dirname(self._path), inherits)
+                if not os.path.exists(path):
+                    raise FileNotFoundError("Could not find file {0} in Resources or next to {1}".format(inherits, self._path)) from e
+
+            inherits_from = MaterialProfile()
+            inherits_from.loadFromFile(path)
+
+            self._general = inherits_from.getGeneralData()
+            self._metadata = inherits_from.getMetaData()
+            self._settings = inherits_from.getSettingsData()
 
         for key, value in parser["general"].items():
             self._general[key] = value

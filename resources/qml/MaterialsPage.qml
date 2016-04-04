@@ -46,14 +46,65 @@ UM.ManagementPage
                 columns: 2
                 spacing: UM.Theme.getSize("default_margin").width
 
-                Label { text: catalog.i18nc("@label", "Material Type"); width: 155 }
-                Label { text: base.currentItem && base.currentItem.group ? base.currentItem.group : "" }
-
-                Label { text: catalog.i18nc("@label", "Supplier"); }
-                Label { text: base.currentItem && base.currentItem.supplier ? base.currentItem.supplier : "" }
-
-                Label { text: catalog.i18nc("@label", "Color"); }
-                Label { text: base.currentItem && base.currentItem.variant ? base.currentItem.variant : "" }
+                Column {
+                    Label { text: catalog.i18nc("@label", "Supplier") }
+                    Label { text: catalog.i18nc("@label", "Material Type") }
+                    Label { text: catalog.i18nc("@label", "Color") }
+                }
+                Column {
+                    Label { text: base.currentItem && base.currentItem.supplier ? base.currentItem.supplier : ""}
+                    Label { text: base.currentItem && base.currentItem.group ? base.currentItem.group : "" }
+                    Column {
+                        Label { text: base.currentItem && base.currentItem.variant ? base.currentItem.variant : "" }
+                        Row {
+                            spacing: UM.Theme.getSize("default_margin").width/2
+                            Rectangle {
+                                color: base.currentItem && base.currentItem.colorDisplay ? base.currentItem.colorDisplay : "yellow"
+                                width: colorLabel.height
+                                height: colorLabel.height
+                                border.width: UM.Theme.getSize("default_lining").height
+                            }
+                            Label { id: colorLabel; text: base.currentItem && base.currentItem.colorRAL ? base.currentItem.colorRAL : "" }
+                        }
+                    }
+                }
+                Column {
+                    Label { text: catalog.i18nc("@label", "Density") }
+                    Label { text: catalog.i18nc("@label", "Diameter") }
+                    Label { text: catalog.i18nc("@label", "Spool cost") }
+                    Label { text: catalog.i18nc("@label", "Spool weight") }
+                    Label { text: catalog.i18nc("@label", "Spool lenght") }
+                    Label { text: catalog.i18nc("@label", "Cost per meter") }
+                }
+                Column {
+                    Label { text: base.currentItem && base.currentItem.density ? base.currentItem.density : "" }
+                    Label { text: base.currentItem && base.currentItem.diameter ? base.currentItem.diameter : ""}
+                    Label { text: base.currentItem && base.currentItem.spoolCost ? base.currentItem.spoolCost : "" }
+                    Label { text: base.currentItem && base.currentItem.spoolWeight ? base.currentItem.spoolWeight : "" }
+                    Label { text: {
+                        if (base.currentItem && base.currentItem.density && base.currentItem.diameter && base.currentItem.spoolWeight) {
+                            var volume = parseFloat(base.currentItem.spoolWeight) / parseFloat(base.currentItem.density);
+                            var surface = Math.PI * Math.pow(parseFloat(base.currentItem.diameter) / 2, 2);
+                            var length = Math.round(1000 * volume/surface).toString();
+                            return length;
+                        } else return "";
+                    }}
+                    Label { text: {
+                        if (base.currentItem && base.currentItem.density && base.currentItem.diameter && base.currentItem.spoolWeight && base.currentItem.spoolCost) {
+                            var volume = parseFloat(base.currentItem.spoolWeight) / parseFloat(base.currentItem.density);
+                            var surface = Math.PI * Math.pow(parseFloat(base.currentItem.diameter) / 2, 2);
+                            var cost = (parseFloat(base.currentItem.spoolCost) / (1000 * volume/surface)).toString().substring(0,5);
+                            return cost;
+                        } else return "";
+                    }}
+                }
+                Button {
+                    visible: base.currentItem && base.currentItem.linkOrder
+                    text: catalog.i18nc("@label", "Order")
+                    onClicked: {
+                        Qt.openUrlExternally(base.currentItem.linkOrder)
+                    }
+                }
             }
         }
     }
