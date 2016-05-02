@@ -40,9 +40,10 @@ class MaterialsModel(ListModel):
         self.addRoleName(self.DensityRole, "density")
         self.addRoleName(self.SpoolCostRole, "spoolCost")
         self.addRoleName(self.SpoolWeightRole, "spoolWeight")
-        self.addRoleName(self.ColorDisplayRole, "color_display")
-        self.addRoleName(self.ColorRALRole, "color_ral")
-        self.addRoleName(self.LinkOrderRole, "link_order")
+        self.addRoleName(self.ColorDisplayRole, "colorDisplay")
+        self.addRoleName(self.ColorRALRole, "colorRAL")
+        self.addRoleName(self.ColorRALRole, "infoGeneral")
+        self.addRoleName(self.ColorRALRole, "infoAdhesion")
         self.loadMaterials()
 
         for material_profile in self._material_profiles:
@@ -61,7 +62,9 @@ class MaterialsModel(ListModel):
 
                 "colorDisplay":  material_profile.getMetaData("color_display"),
                 "colorRAL":  material_profile.getMetaData("color_ral"),
-                "linkOrder":  material_profile.getMetaData("link_order")
+
+                "infoGeneral":  material_profile.getMetaData("info_general"),
+                "infoAdhesion":  material_profile.getMetaData("info_adhesion"),
             })
 
     def loadMaterials(self):
