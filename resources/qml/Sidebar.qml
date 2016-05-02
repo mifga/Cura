@@ -18,6 +18,7 @@ Rectangle
     property Action updateProfileAction;
     property Action resetProfileAction;
     property Action manageProfilesAction;
+    property Action manageMaterialsAction;
     property Action configureSettingsAction;
     property int currentModeIndex;
 
@@ -54,6 +55,7 @@ Rectangle
 
         addMachineAction: base.addMachineAction;
         configureMachinesAction: base.configureMachinesAction;
+        manageMaterialsAction: base.manageMaterialsAction
     }
 
     Rectangle {

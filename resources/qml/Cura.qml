@@ -519,6 +519,7 @@ UM.MainWindow
                 updateProfileAction: actions.updateProfile;
                 resetProfileAction: actions.resetProfile;
                 manageProfilesAction: actions.manageProfiles;
+                manageMaterialsAction: actions.manageMaterials;
 
                 configureSettingsAction: Action
                 {
@@ -547,7 +548,7 @@ UM.MainWindow
             insertPage(1, catalog.i18nc("@title:tab","View"), Qt.resolvedUrl("ViewPage.qml"));
 
             //: View preferences page title
-            insertPage(5, catalog.i18nc("@title:tab","Materials"), Qt.resolvedUrl("MaterialsPage.qml"));
+            insertPage(4, catalog.i18nc("@title:tab","Materials"), Qt.resolvedUrl("MaterialsPage.qml"));
 
             //Force refresh
             setPage(0);
@@ -633,7 +634,7 @@ UM.MainWindow
         addProfile.onTriggered:
         {
             UM.MachineManager.createProfile();
-            preferences.setPage(4);
+            preferences.setPage(5);
             preferences.show();
 
             // Show the renameDialog after a very short delay so the preference page has time to initiate
@@ -649,6 +650,11 @@ UM.MainWindow
             preferences.setPage(3);
         }
         manageProfiles.onTriggered:
+        {
+            preferences.visible = true;
+            preferences.setPage(5);
+        }
+        manageMaterials.onTriggered:
         {
             preferences.visible = true;
             preferences.setPage(4);

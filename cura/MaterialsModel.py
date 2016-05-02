@@ -26,6 +26,7 @@ class MaterialsModel(ListModel):
     ColorDisplayRole = Qt.UserRole + 9
     ColorRALRole = Qt.UserRole + 10
     LinkOrderRole = Qt.UserRole + 11
+    SettingsRole = Qt.UserRole + 12
 
     def __init__(self, parent = None):
         super().__init__(parent)
@@ -44,6 +45,7 @@ class MaterialsModel(ListModel):
         self.addRoleName(self.ColorRALRole, "colorRAL")
         self.addRoleName(self.ColorRALRole, "infoGeneral")
         self.addRoleName(self.ColorRALRole, "infoAdhesion")
+        self.addRoleName(self.SettingsRole, "settings")
         self.loadMaterials()
 
         for material_profile in self._material_profiles:
@@ -65,6 +67,8 @@ class MaterialsModel(ListModel):
 
                 "infoGeneral":  material_profile.getMetaData("info_general"),
                 "infoAdhesion":  material_profile.getMetaData("info_adhesion"),
+
+                "settings": material_profile.getSettings()
             })
 
     def loadMaterials(self):
@@ -109,6 +113,8 @@ class MaterialProfile(SignalEmitter):
         self._metadata = {}
         self._settings = {}
 
+        self._manager = Application.getInstance().getMachineManager()
+
         self._path = ""
 
     def getGeneralData(self, key=None):
@@ -134,6 +140,17 @@ class MaterialProfile(SignalEmitter):
             return self._settings[key]
         else:
             return
+
+    def getSettings(self):
+        settings_list = []
+        machine_definition = self._manager.getActiveMachineInstance().getMachineDefinition()
+        for key, value in self._settings.items():
+            setting = machine_definition.getSetting(key)
+            if setting:
+                settings_list.append({"name": setting.getLabel(), "unit": setting.getUnit(), "value": value})
+        settings_list = sorted(settings_list, key = lambda setting:setting["name"])
+
+        return settings_list
 
     ##  Load a serialised profile from a file.
     #

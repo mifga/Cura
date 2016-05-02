@@ -35,6 +35,7 @@ Item
     property alias updateProfile: updateProfileAction;
     property alias resetProfile: resetProfileAction;
     property alias manageProfiles: manageProfilesAction;
+    property alias manageMaterials: manageMaterialsAction;
 
     property alias preferences: preferencesAction;
 
@@ -123,6 +124,13 @@ Item
     {
         id: manageProfilesAction;
         text: catalog.i18nc("@action:inmenu menubar:profile","Manage Profiles...");
+        iconName: "configure";
+    }
+
+    Action
+    {
+        id: manageMaterialsAction;
+        text: catalog.i18nc("@action:inmenu menubar:materials","More Materials...");
         iconName: "configure";
     }
 

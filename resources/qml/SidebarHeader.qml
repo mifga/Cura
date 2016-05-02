@@ -13,6 +13,7 @@ Item
     // Machine Setup
     property Action addMachineAction;
     property Action configureMachinesAction;
+    property Action manageMaterialsAction;
     UM.I18nCatalog { id: catalog; name:"cura"}
     property int totalHeightHeader: childrenRect.height
 
@@ -204,6 +205,10 @@ Item
                         }
                         onObjectAdded: materialSelectionMenu.insertItem(index, object)
                         onObjectRemoved: materialSelectionMenu.removeItem(object)
+                    }
+                    MenuSeparator { }
+                    MenuItem {
+                        action: base.manageMaterialsAction;
                     }
 
                     ExclusiveGroup { id: materialSelectionMenuGroup; }

@@ -110,6 +110,28 @@ UM.ManagementPage
                     wrapMode: Text.WordWrap
                 }
 
+                Label { text: catalog.i18nc("@label", "Print settings"); font: UM.Theme.getFont("large"); width: parent.width; }
+
+                Grid {
+                    columns: 2
+                    spacing: UM.Theme.getSize("default_margin").width
+
+                    Column {
+                        Repeater {
+                            model: base.currentItem ? base.currentItem.settings : null
+                            Label {
+                                text: modelData.name.toString();
+                                elide: Text.ElideMiddle;
+                            }
+                        }
+                    }
+                    Column {
+                        Repeater {
+                            model: base.currentItem ? base.currentItem.settings : null
+                            Label { text: modelData.value.toString() + " " + modelData.unit.toString(); }
+                        }
+                    }
+                }
             }
         }
     }
