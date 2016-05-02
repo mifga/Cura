@@ -47,11 +47,13 @@ UM.ManagementPage
                 spacing: UM.Theme.getSize("default_margin").width
 
                 Column {
+                    Label { text: catalog.i18nc("@label", "Profile Type") }
                     Label { text: catalog.i18nc("@label", "Supplier") }
                     Label { text: catalog.i18nc("@label", "Material Type") }
                     Label { text: catalog.i18nc("@label", "Color") }
                 }
                 Column {
+                    Label { text: base.currentItem && base.currentItem.profileType ? base.currentItem.profileType : ""}
                     Label { text: base.currentItem && base.currentItem.supplier ? base.currentItem.supplier : ""}
                     Label { text: base.currentItem && base.currentItem.group ? base.currentItem.group : "" }
                     Column {
@@ -69,32 +71,25 @@ UM.ManagementPage
                     }
                 }
                 Column {
+                    Label { text: "<b>" + catalog.i18nc("@label", "Physical properties") + "</b>" }
                     Label { text: catalog.i18nc("@label", "Density") }
                     Label { text: catalog.i18nc("@label", "Diameter") }
                     Label { text: catalog.i18nc("@label", "Spool cost") }
                     Label { text: catalog.i18nc("@label", "Spool weight") }
-                    Label { text: catalog.i18nc("@label", "Spool lenght") }
                     Label { text: catalog.i18nc("@label", "Cost per meter") }
                 }
                 Column {
-                    Label { text: base.currentItem && base.currentItem.density ? base.currentItem.density : "" }
-                    Label { text: base.currentItem && base.currentItem.diameter ? base.currentItem.diameter : ""}
-                    Label { text: base.currentItem && base.currentItem.spoolCost ? base.currentItem.spoolCost : "" }
-                    Label { text: base.currentItem && base.currentItem.spoolWeight ? base.currentItem.spoolWeight : "" }
-                    Label { text: {
-                        if (base.currentItem && base.currentItem.density && base.currentItem.diameter && base.currentItem.spoolWeight) {
-                            var volume = parseFloat(base.currentItem.spoolWeight) / parseFloat(base.currentItem.density);
-                            var surface = Math.PI * Math.pow(parseFloat(base.currentItem.diameter) / 2, 2);
-                            var length = Math.round(1000 * volume/surface).toString();
-                            return length;
-                        } else return "";
-                    }}
+                    Label { text: " " }
+                    Label { text: base.currentItem && base.currentItem.density ? base.currentItem.density + " gr/mm3" : "" }
+                    Label { text: base.currentItem && base.currentItem.diameter ? base.currentItem.diameter + " mm" : ""}
+                    Label { text: base.currentItem && base.currentItem.spoolCost ? base.currentItem.spoolCost + " EUR" : "" }
+                    Label { text: base.currentItem && base.currentItem.spoolWeight ? base.currentItem.spoolWeight + " kg" : "" }
                     Label { text: {
                         if (base.currentItem && base.currentItem.density && base.currentItem.diameter && base.currentItem.spoolWeight && base.currentItem.spoolCost) {
                             var volume = parseFloat(base.currentItem.spoolWeight) / parseFloat(base.currentItem.density);
                             var surface = Math.PI * Math.pow(parseFloat(base.currentItem.diameter) / 2, 2);
-                            var cost = (parseFloat(base.currentItem.spoolCost) / (1000 * volume/surface)).toString().substring(0,5);
-                            return cost;
+                            var cost = (parseFloat(base.currentItem.spoolCost) / (1000 * volume/surface)).toString().substring(0,4);
+                            return catalog.i18nc("@label", "approx. %1 ").arg(cost) + "EUR/m";
                         } else return "";
                     }}
                 }

@@ -48,13 +48,15 @@ class MaterialsModel(ListModel):
         for material_profile in self._material_profiles:
             self.appendItem({
                 "name": material_profile.getGeneralData("name"),
-                "group": material_profile.getGeneralData("type"),
+                "group": material_profile.getGeneralData("material"),
                 "variant": material_profile.getGeneralData("color"),
                 "supplier": material_profile.getGeneralData("supplier"),
+                "profileType": material_profile.getGeneralData("profile_type"),
 
                 "diameter":  material_profile.getMetaData("diameter"),
                 "density":  material_profile.getMetaData("density"),
                 "spoolCost":  material_profile.getMetaData("spool_cost"),
+                "spoolWeight":  material_profile.getMetaData("spool_weight"),
                 "spoolWeight":  material_profile.getMetaData("spool_weight"),
 
                 "colorDisplay":  material_profile.getMetaData("color_display"),
