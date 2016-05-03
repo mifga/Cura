@@ -16,7 +16,7 @@ import io #For serialising the profile to strings.
 
 class MaterialsModel(ListModel):
     NameRole = Qt.UserRole + 1
-    GroupRole = Qt.UserRole + 2
+    MaterialRole = Qt.UserRole + 2
     VariantRole = Qt.UserRole + 3
     SupplierRole = Qt.UserRole + 4
     DiameterRole = Qt.UserRole + 5
@@ -34,7 +34,7 @@ class MaterialsModel(ListModel):
         self._material_profiles = []
 
         self.addRoleName(self.NameRole, "name")
-        self.addRoleName(self.GroupRole, "group")
+        self.addRoleName(self.MaterialRole, "material")
         self.addRoleName(self.VariantRole, "variant")
         self.addRoleName(self.SupplierRole, "supplier")
         self.addRoleName(self.DiameterRole, "diameter")
@@ -51,7 +51,7 @@ class MaterialsModel(ListModel):
         for material_profile in self._material_profiles:
             self.appendItem({
                 "name": material_profile.getGeneralData("name"),
-                "group": material_profile.getGeneralData("material"),
+                "material": material_profile.getGeneralData("material"),
                 "variant": material_profile.getGeneralData("color"),
                 "supplier": material_profile.getGeneralData("supplier"),
                 "profileType": material_profile.getGeneralData("profile_type"),
