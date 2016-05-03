@@ -116,7 +116,7 @@ class CuraApplication(QtApplication):
         Preferences.getInstance().addPreference("cura/active_mode", "simple")
         Preferences.getInstance().addPreference("cura/recent_files", "")
         Preferences.getInstance().addPreference("cura/categories_expanded", "")
-        preferences.getInstance().addPreference("general/currency", "EUR")
+        Preferences.getInstance().addPreference("general/currency", "EUR")
         Preferences.getInstance().addPreference("view/center_on_select", True)
         Preferences.getInstance().addPreference("mesh/scale_to_fit", True)
         Preferences.getInstance().setDefault("local_file/last_used_type", "text/x-gcode")
