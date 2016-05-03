@@ -13,27 +13,37 @@ from PyQt5.QtCore import Qt, pyqtSlot
 import os
 import configparser
 import io #For serialising the profile to strings.
+import math
 
 class MaterialsModel(ListModel):
     NameRole = Qt.UserRole + 1
-    MaterialRole = Qt.UserRole + 2
-    VariantRole = Qt.UserRole + 3
-    SupplierRole = Qt.UserRole + 4
-    DiameterRole = Qt.UserRole + 5
-    DensityRole = Qt.UserRole + 6
-    SpoolCostRole = Qt.UserRole + 7
-    SpoolWeightRole = Qt.UserRole + 8
-    ColorDisplayRole = Qt.UserRole + 9
-    ColorRALRole = Qt.UserRole + 10
-    LinkOrderRole = Qt.UserRole + 11
-    SettingsRole = Qt.UserRole + 12
+    GroupRole = Qt.UserRole + 2
+    ActiveRole = Qt.UserRole + 3
+    MaterialRole = Qt.UserRole + 4
+    VariantRole = Qt.UserRole + 5
+    SupplierRole = Qt.UserRole + 6
+    DiameterRole = Qt.UserRole + 7
+    DensityRole = Qt.UserRole + 8
+    SpoolCostRole = Qt.UserRole + 9
+    SpoolWeightRole = Qt.UserRole + 10
+    SpoolLengthRole = Qt.UserRole + 11
+    LengthCostRole = Qt.UserRole + 12
+    ColorDisplayRole = Qt.UserRole + 13
+    ColorRALRole = Qt.UserRole + 14
+    InfoGeneralRole = Qt.UserRole + 15
+    InfoAdhesionRole = Qt.UserRole + 16
+    LinkOrderRole = Qt.UserRole + 17
+    SettingsRole = Qt.UserRole + 18
 
     def __init__(self, parent = None):
         super().__init__(parent)
 
         self._material_profiles = []
+        self._manager = Application.getInstance().getMachineManager()
 
         self.addRoleName(self.NameRole, "name")
+        self.addRoleName(self.GroupRole, "group")
+        self.addRoleName(self.ActiveRole, "active")
         self.addRoleName(self.MaterialRole, "material")
         self.addRoleName(self.VariantRole, "variant")
         self.addRoleName(self.SupplierRole, "supplier")
@@ -41,16 +51,25 @@ class MaterialsModel(ListModel):
         self.addRoleName(self.DensityRole, "density")
         self.addRoleName(self.SpoolCostRole, "spoolCost")
         self.addRoleName(self.SpoolWeightRole, "spoolWeight")
+        self.addRoleName(self.SpoolLengthRole, "spoolLength")
+        self.addRoleName(self.LengthCostRole, "lenghtCost")
         self.addRoleName(self.ColorDisplayRole, "colorDisplay")
         self.addRoleName(self.ColorRALRole, "colorRAL")
-        self.addRoleName(self.ColorRALRole, "infoGeneral")
-        self.addRoleName(self.ColorRALRole, "infoAdhesion")
+        self.addRoleName(self.InfoGeneralRole, "infoGeneral")
+        self.addRoleName(self.InfoAdhesionRole, "infoAdhesion")
         self.addRoleName(self.SettingsRole, "settings")
         self.loadMaterials()
 
         for material_profile in self._material_profiles:
+            volume = float(material_profile.getMetaData("spool_weight")) / float(material_profile.getMetaData("density"))
+            surface = math.pi * math.pow(float(material_profile.getMetaData("diameter")) / 2, 2) / 1000
+            length = round(volume / surface)
+            cost = round(100 * float(material_profile.getMetaData("spool_cost")) / length)/100;
+
             self.appendItem({
                 "name": material_profile.getGeneralData("name"),
+                "group": material_profile.getGeneralData("profile_type"),
+                "active": material_profile.getGeneralData("name") == self._manager.getActiveMachineInstance().getMaterialName(),
                 "material": material_profile.getGeneralData("material"),
                 "variant": material_profile.getGeneralData("color"),
                 "supplier": material_profile.getGeneralData("supplier"),
@@ -60,7 +79,8 @@ class MaterialsModel(ListModel):
                 "density":  material_profile.getMetaData("density"),
                 "spoolCost":  material_profile.getMetaData("spool_cost"),
                 "spoolWeight":  material_profile.getMetaData("spool_weight"),
-                "spoolWeight":  material_profile.getMetaData("spool_weight"),
+                "spoolLength": length,
+                "lenghtCost":  cost,
 
                 "colorDisplay":  material_profile.getMetaData("color_display"),
                 "colorRAL":  material_profile.getMetaData("color_ral"),
