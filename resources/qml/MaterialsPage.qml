@@ -85,7 +85,11 @@ UM.ManagementPage
                             Label { text: "<b>" + catalog.i18nc("@label", "Properties") + "</b>" }
                             Label { text: catalog.i18nc("@label", "Density") }
                             Label { text: catalog.i18nc("@label", "Diameter") }
-                            Label { text: catalog.i18nc("@label", "Filament cost") }
+                            Label {
+                                text: catalog.i18nc("@label", "Filament cost")
+                                height: spoolCostInput.height
+                                verticalAlignment: Text.AlignVCenter
+                            }
                             Label { text: catalog.i18nc("@label", "Filament weight") }
                             Label { text: catalog.i18nc("@label", "Filament length") }
                             Label { text: catalog.i18nc("@label", "Cost per meter") }
@@ -94,7 +98,16 @@ UM.ManagementPage
                             Label { text: " " }
                             Label { text: base.currentItem && base.currentItem.density ? base.currentItem.density + " " + "kg/m3" : "" }
                             Label { text: base.currentItem && base.currentItem.diameter ? base.currentItem.diameter + " " + "mm" : ""}
-                            Label { text: base.currentItem && base.currentItem.spoolCost ? base.currency + " " + base.currentItem.spoolCost : "" }
+                            Row {
+                                Label {
+                                    text: base.currentItem && base.currentItem.spoolCost ? base.currency + " " : ""
+                                    anchors.verticalCenter: parent.verticalCenter
+                                }
+                                TextField {
+                                    id: spoolCostInput
+                                    text: base.currentItem.spoolCost
+                                }
+                            }
                             Label { text: base.currentItem && base.currentItem.spoolWeight ? base.currentItem.spoolWeight + " " + "kg" : "" }
                             Label { text: base.currentItem && base.currentItem.spoolLength ? catalog.i18nc("@label", "approx.") + " " + base.currentItem.spoolLength + " " + "m" : "" }
                             Label { text: base.currentItem && base.currentItem.lenghtCost ? catalog.i18nc("@label", "approx.") + " " + base.currency + " " + base.currentItem.lenghtCost + "/m" : "" }
