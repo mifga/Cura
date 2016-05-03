@@ -1,5 +1,5 @@
 // Copyright (c) 2015 Ultimaker B.V.
-// Uranium is released under the terms of the AGPLv3 or higher.
+// Cura is released under the terms of the AGPLv3 or higher.
 
 import QtQuick 2.1
 import QtQuick.Controls 1.1
@@ -95,6 +95,18 @@ UM.PreferencesPage
                     currentIndex += 1;
                     currentIndex -= 1;
                 }
+            }
+            Label
+            {
+                id: currencyLabel
+                text: catalog.i18nc("@label","Currency:")
+            }
+            TextField
+            {
+                id: currencyInput
+                maximumLength: 8
+                text: UM.Preferences.getValue("general/currency")
+                onEditingFinished: UM.Preferences.setValue("general/currency", text)
             }
         }
 

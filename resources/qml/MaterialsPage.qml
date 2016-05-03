@@ -27,6 +27,8 @@ UM.ManagementPage
     scrollviewCaption: " "
     detailsVisible: true
 
+    property string currency: UM.Preferences.getValue("general/currency")
+
     Item {
         UM.I18nCatalog { id: catalog; name: "cura"; }
 
@@ -92,10 +94,10 @@ UM.ManagementPage
                             Label { text: " " }
                             Label { text: base.currentItem && base.currentItem.density ? base.currentItem.density + " " + "kg/m3" : "" }
                             Label { text: base.currentItem && base.currentItem.diameter ? base.currentItem.diameter + " " + "mm" : ""}
-                            Label { text: base.currentItem && base.currentItem.spoolCost ? base.currentItem.spoolCost + " " + "EUR" : "" }
+                            Label { text: base.currentItem && base.currentItem.spoolCost ? base.currency + " " + base.currentItem.spoolCost : "" }
                             Label { text: base.currentItem && base.currentItem.spoolWeight ? base.currentItem.spoolWeight + " " + "kg" : "" }
                             Label { text: base.currentItem && base.currentItem.spoolLength ? catalog.i18nc("@label", "approx.") + " " + base.currentItem.spoolLength + " " + "m" : "" }
-                            Label { text: base.currentItem && base.currentItem.lenghtCost ? catalog.i18nc("@label", "approx.") + " " + base.currentItem.lenghtCost + " " + "EUR/m" : "" }
+                            Label { text: base.currentItem && base.currentItem.lenghtCost ? catalog.i18nc("@label", "approx.") + " " + base.currency + " " + base.currentItem.lenghtCost + "/m" : "" }
                         }
                     }
                     Label {
