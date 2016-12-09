@@ -3,7 +3,6 @@ STK500v2 protocol implementation for programming AVR chips.
 The STK500v2 protocol is used by the ArduinoMega2560 and a few other Arduino platforms to load firmware.
 This is a python 3 conversion of the code created by David Braam for the Cura project.
 """
-import os
 import struct
 import sys
 import time
@@ -11,6 +10,7 @@ import time
 from serial import Serial
 from serial import SerialException
 from serial import SerialTimeoutException
+from UM.Logger import Logger
 
 from . import ispBase, intelHex
 
@@ -21,13 +21,13 @@ class Stk500v2(ispBase.IspBase):
         self.seq = 1
         self.last_addr = -1
         self.progress_callback = None
-        
+
     def connect(self, port = "COM22", speed = 115200):
         if self.serial is not None:
             self.close()
         try:
             self.serial = Serial(str(port), speed, timeout=1, writeTimeout=10000)
-        except SerialException as e:
+        except SerialException:
             raise ispBase.IspError("Failed to open serial port")
         except:
             raise ispBase.IspError("Unexpected error while connecting to serial port:" + port + ":" + str(sys.exc_info()[0]))
@@ -69,7 +69,7 @@ class Stk500v2(ispBase.IspBase):
             self.serial = None
             return ret
         return None
-    
+
     def isConnected(self):
         return self.serial is not None
 
@@ -79,25 +79,25 @@ class Stk500v2(ispBase.IspBase):
     def sendISP(self, data):
         recv = self.sendMessage([0x1D, 4, 4, 0, data[0], data[1], data[2], data[3]])
         return recv[2:6]
-    
+
     def writeFlash(self, flash_data):
         #Set load addr to 0, in case we have more then 64k flash we need to enable the address extension
         page_size = self.chip["pageSize"] * 2
         flash_size = page_size * self.chip["pageCount"]
-        print("Writing flash")
+        Logger.log("d", "Writing flash")
         if flash_size > 0xFFFF:
             self.sendMessage([0x06, 0x80, 0x00, 0x00, 0x00])
         else:
             self.sendMessage([0x06, 0x00, 0x00, 0x00, 0x00])
-        load_count = (len(flash_data) + page_size - 1) / page_size   
+        load_count = (len(flash_data) + page_size - 1) / page_size
         for i in range(0, int(load_count)):
-            recv = self.sendMessage([0x13, page_size >> 8, page_size & 0xFF, 0xc1, 0x0a, 0x40, 0x4c, 0x20, 0x00, 0x00] + flash_data[(i * page_size):(i * page_size + page_size)])
+            self.sendMessage([0x13, page_size >> 8, page_size & 0xFF, 0xc1, 0x0a, 0x40, 0x4c, 0x20, 0x00, 0x00] + flash_data[(i * page_size):(i * page_size + page_size)])
             if self.progress_callback is not None:
                 if self._has_checksum:
                     self.progress_callback(i + 1, load_count)
                 else:
-                    self.progress_callback(i + 1, load_count*2)
-    
+                    self.progress_callback(i + 1, load_count * 2)
+
     def verifyFlash(self, flash_data):
         if self._has_checksum:
             self.sendMessage([0x06, 0x00, (len(flash_data) >> 17) & 0xFF, (len(flash_data) >> 9) & 0xFF, (len(flash_data) >> 1) & 0xFF])
@@ -121,7 +121,7 @@ class Stk500v2(ispBase.IspBase):
             for i in range(0, int(load_count)):
                 recv = self.sendMessage([0x14, 0x01, 0x00, 0x20])[2:0x102]
                 if self.progress_callback is not None:
-                    self.progress_callback(load_count + i + 1, load_count*2)
+                    self.progress_callback(load_count + i + 1, load_count * 2)
                 for j in range(0, 0x100):
                     if i * 0x100 + j < len(flash_data) and flash_data[i * 0x100 + j] != recv[j]:
                         raise ispBase.IspError("Verify error at: 0x%x" % (i * 0x100 + j))
@@ -141,7 +141,7 @@ class Stk500v2(ispBase.IspBase):
             raise ispBase.IspError("Serial send timeout")
         self.seq = (self.seq + 1) & 0xFF
         return self.recvMessage()
-    
+
     def recvMessage(self):
         state = "Start"
         checksum = 0
@@ -151,7 +151,6 @@ class Stk500v2(ispBase.IspBase):
                 raise ispBase.IspError("Timeout")
             b = struct.unpack(">B", s)[0]
             checksum ^= b
-            #print(hex(b))
             if state == "Start":
                 if b == 0x1B:
                     state = "GetSeq"
@@ -183,11 +182,11 @@ class Stk500v2(ispBase.IspBase):
 def portList():
     ret = []
     import _winreg
-    key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\SERIALCOMM")
+    key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\SERIALCOMM") #@UndefinedVariable
     i=0
     while True:
         try:
-            values = _winreg.EnumValue(key, i)
+            values = _winreg.EnumValue(key, i) #@UndefinedVariable
         except:
             return ret
         if "USBSER" in values[0]:
@@ -206,7 +205,7 @@ def main():
     """ Entry point to call the stk500v2 programmer from the commandline. """
     import threading
     if sys.argv[1] == "AUTO":
-        print(portList())
+        Logger.log("d", "portList(): ", repr(portList()))
         for port in portList():
             threading.Thread(target=runProgrammer, args=(port,sys.argv[2])).start()
             time.sleep(5)

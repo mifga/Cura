@@ -33,7 +33,6 @@ class ChangeLog(Extension, QObject,):
         Application.getInstance().engineCreatedSignal.connect(self._onEngineCreated)
         Preferences.getInstance().addPreference("general/latest_version_changelog_shown", "2.0.0") #First version of CURA with uranium
         self.addMenuItem(catalog.i18nc("@item:inmenu", "Show Changelog"), self.showChangelog)
-        #self.showChangelog()
 
     def getChangeLogs(self):
         if not self._change_logs:
@@ -48,7 +47,8 @@ class ChangeLog(Extension, QObject,):
             result += "<h1>" + str(version) + "</h1><br>"
             result += ""
             for change in logs[version]:
-                result += "<b>" + str(change) + "</b><br>"
+                if str(change) != "":
+                    result += "<b>" + str(change) + "</b><br>"
                 for line in logs[version][change]:
                     result += str(line) + "<br>"
                 result += "<br>"
@@ -60,20 +60,22 @@ class ChangeLog(Extension, QObject,):
         self._change_logs = collections.OrderedDict()
         with open(os.path.join(PluginRegistry.getInstance().getPluginPath(self.getPluginId()), "ChangeLog.txt"), "r",-1, "utf-8") as f:
             open_version = None
-            open_header = None
+            open_header = "" # Initialise to an empty header in case there is no "*" in the first line of the changelog
             for line in f:
                 line = line.replace("\n","")
                 if "[" in line and "]" in line:
                     line = line.replace("[","")
                     line = line.replace("]","")
                     open_version = Version(line)
-                    self._change_logs[Version(line)] = collections.OrderedDict()
+                    open_header = ""
+                    self._change_logs[open_version] = collections.OrderedDict()
                 elif line.startswith("*"):
                     open_header = line.replace("*","")
                     self._change_logs[open_version][open_header] = []
-                else:
-                    if line != "":
-                        self._change_logs[open_version][open_header].append(line)
+                elif line != "":
+                    if open_header not in self._change_logs[open_version]:
+                        self._change_logs[open_version][open_header] = []
+                    self._change_logs[open_version][open_header].append(line)
 
     def _onEngineCreated(self):
         if not self._version:
@@ -84,6 +86,13 @@ class ChangeLog(Extension, QObject,):
         else:
             latest_version_shown = Version(Preferences.getInstance().getValue("general/latest_version_changelog_shown"))
 
+        Preferences.getInstance().setValue("general/latest_version_changelog_shown", Application.getInstance().getVersion())
+
+        # Do not show the changelog when there is no global container stack
+        # This implies we are running Cura for the first time.
+        if not Application.getInstance().getGlobalContainerStack():
+            return
+
         if self._version > latest_version_shown:
             self.showChangelog()
 
@@ -92,7 +101,6 @@ class ChangeLog(Extension, QObject,):
             self.createChangelogWindow()
 
         self._changelog_window.show()
-        Preferences.getInstance().setValue("general/latest_version_changelog_shown", Application.getInstance().getVersion())
 
     def hideChangelog(self):
         if self._changelog_window:
@@ -105,4 +113,3 @@ class ChangeLog(Extension, QObject,):
         self._changelog_context = QQmlContext(Application.getInstance()._engine.rootContext())
         self._changelog_context.setContextProperty("manager", self)
         self._changelog_window = component.create(self._changelog_context)
-        #print(self._changelog_window)

@@ -14,6 +14,11 @@
             "bold": true,
             "family": "Open Sans"
         },
+        "default_italic": {
+            "size": 1.15,
+            "italic": true,
+            "family": "Open Sans"
+        },
         "small": {
             "size": 1.0,
             "bold": true,
@@ -38,6 +43,7 @@
     "colors": {
         "sidebar": [255, 255, 255, 255],
         "lining": [127, 127, 127, 255],
+        "viewport_overlay": [24, 41, 77, 255],
 
         "primary": [12, 169, 227, 255],
         "primary_hover": [48, 182, 231, 255],
@@ -46,15 +52,20 @@
         "secondary": [245, 245, 245, 255],
 
         "text": [24, 41, 77, 255],
+        "text_detail": [174, 174, 174, 128],
         "text_link": [12, 169, 227, 255],
         "text_inactive": [174, 174, 174, 255],
         "text_hover": [70, 84, 113, 255],
         "text_pressed": [12, 169, 227, 255],
-        "text_white": [255, 255, 255, 255],
+        "text_reversed": [255, 255, 255, 255],
         "text_subtext": [70, 84, 113, 255],
 
         "error": [255, 140, 0, 255],
         "sidebar_header_bar": [24, 41, 77, 255],
+        "sidebar_header_active": [70, 84, 113, 255],
+        "sidebar_header_hover": [24, 41, 77, 255],
+        "sidebar_header_highlight": [12, 169, 227, 255],
+        "sidebar_header_highlight_hover": [255, 255, 255, 255],
         "sidebar_lining": [245, 245, 245, 255],
 
         "button": [24, 41, 77, 255],
@@ -80,7 +91,21 @@
         "toggle_hovered_text": [24, 41, 77, 255],
         "toggle_active": [32, 166, 219, 255],
         "toggle_active_border": [32, 166, 219, 255],
-        "toggle_active_text": [255, 255, 255, 255],
+        "toggle_active_text": [24, 41, 77, 255],
+
+        "tab_checked": [255, 255, 255, 255],
+        "tab_checked_border": [255, 255, 255, 255],
+        "tab_checked_text": [24, 41, 77, 255],
+        "tab_unchecked": [245, 245, 245, 255],
+        "tab_unchecked_border": [245, 245, 245, 255],
+        "tab_unchecked_text": [127, 127, 127, 255],
+        "tab_hovered": [245, 245, 245, 255],
+        "tab_hovered_border": [245, 245, 245, 255],
+        "tab_hovered_text": [32, 166, 219, 255],
+        "tab_active": [255, 255, 255, 255],
+        "tab_active_border": [255, 255, 255, 255],
+        "tab_active_text": [24, 41, 77, 255],
+        "tab_background": [245, 245, 245, 255],
 
         "action_button": [255, 255, 255, 255],
         "action_button_text": [24, 41, 77, 255],
@@ -149,14 +174,29 @@
         "tooltip": [12, 169, 227, 255],
         "tooltip_text": [255, 255, 255, 255],
 
-        "message_background": [255, 255, 255, 255],
-        "message_text": [32, 166, 219, 255],
-        "message_dismiss": [127, 127, 127, 255],
+        "message_background": [24, 41, 77, 255],
+        "message_text": [255, 255, 255, 255],
+        "message_border": [24, 41, 77, 255],
+        "message_button": [255, 255, 255, 255],
+        "message_button_hover": [12, 169, 227, 255],
+        "message_button_active": [32, 166, 219, 255],
+        "message_button_text": [24, 41, 77, 255],
+        "message_button_text_hover": [255, 255, 255, 255],
+        "message_button_text_active": [255, 255, 255, 255],
+        "message_progressbar_background": [255, 255, 255, 255],
+        "message_progressbar_control": [12, 169, 227, 255],
 
-        "tool_panel_background": [255, 255, 255, 255]
+        "tool_panel_background": [255, 255, 255, 255],
+
+        "status_offline": [0, 0, 0, 255],
+        "status_ready": [0, 205, 0, 255],
+        "status_busy": [12, 169, 227, 255],
+        "status_paused": [255, 140, 0, 255],
+        "status_stopped": [236, 82, 80, 255]
     },
 
     "sizes": {
+        "window_minimum_size": [70, 54],
         "window_margin": [1.0, 1.0],
         "default_margin": [1.0, 1.0],
         "default_lining": [0.08, 0.08],
@@ -165,9 +205,12 @@
 
         "sidebar": [35.0, 10.0],
         "sidebar_header": [0.0, 4.0],
+        "sidebar_header_highlight": [0.25, 0.25],
         "sidebar_header_mode_toggle": [0.0, 2.0],
+        "sidebar_header_mode_tabs": [0.0, 3.0],
         "sidebar_lining": [0.5, 0.5],
         "sidebar_setup": [0.0, 2.0],
+        "sidebar_tabs": [0.0, 3.5],
         "sidebar_inputfields": [0.0, 2.0],
         "simple_mode_infill_caption": [0.0, 5.0],
         "simple_mode_infill_height": [0.0, 8.0],
@@ -176,7 +219,7 @@
         "section_icon": [1.6, 1.6],
         "section_icon_column": [2.8, 0.0],
 
-        "setting": [19.0, 1.8],
+        "setting": [25.0, 1.8],
         "setting_control": [10.0, 2.0],
         "setting_control_depth_margin": [1.4, 0.0],
         "setting_preferences_button_margin": [3.3, 0.0],

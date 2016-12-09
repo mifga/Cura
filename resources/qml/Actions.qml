@@ -1,13 +1,17 @@
 // Copyright (c) 2015 Ultimaker B.V.
 // Cura is released under the terms of the AGPLv3 or higher.
 
+pragma Singleton
+
 import QtQuick 2.2
 import QtQuick.Controls 1.1
 import UM 1.1 as UM
+import Cura 1.0 as Cura
 
 Item
 {
     property alias open: openAction;
+    property alias loadWorkspace: loadWorkspaceAction;
     property alias quit: quitAction;
 
     property alias undo: undoAction;
@@ -24,6 +28,7 @@ Item
 
     property alias multiplyObject: multiplyObjectAction;
 
+    property alias selectAll: selectAllAction;
     property alias deleteAll: deleteAllAction;
     property alias reloadAll: reloadAllAction;
     property alias resetAllTranslation: resetAllTranslationAction;
@@ -36,14 +41,19 @@ Item
     property alias resetProfile: resetProfileAction;
     property alias manageProfiles: manageProfilesAction;
 
+    property alias manageMaterials: manageMaterialsAction;
+
     property alias preferences: preferencesAction;
 
     property alias showEngineLog: showEngineLogAction;
+    property alias showProfileFolder: showProfileFolderAction;
     property alias documentation: documentationAction;
     property alias reportBug: reportBugAction;
     property alias about: aboutAction;
 
     property alias toggleFullScreen: toggleFullScreenAction;
+
+    property alias configureSettingVisibility: configureSettingVisibilityAction
 
     UM.I18nCatalog{id: catalog; name:"cura"}
 
@@ -60,6 +70,8 @@ Item
         text: catalog.i18nc("@action:inmenu menubar:edit","&Undo");
         iconName: "edit-undo";
         shortcut: StandardKey.Undo;
+        onTriggered: UM.OperationStack.undo();
+        enabled: UM.OperationStack.canUndo;
     }
 
     Action
@@ -68,6 +80,8 @@ Item
         text: catalog.i18nc("@action:inmenu menubar:edit","&Redo");
         iconName: "edit-redo";
         shortcut: StandardKey.Redo;
+        onTriggered: UM.OperationStack.redo();
+        enabled: UM.OperationStack.canRedo;
     }
 
     Action
@@ -81,7 +95,7 @@ Item
     Action
     {
         id: preferencesAction;
-        text: catalog.i18nc("@action:inmenu menubar:settings","&Preferences...");
+        text: catalog.i18nc("@action:inmenu","Configure Cura...");
         iconName: "configure";
     }
 
@@ -100,23 +114,36 @@ Item
 
     Action
     {
+        id: manageMaterialsAction
+        text: catalog.i18nc("@action:inmenu", "Manage Materials...")
+        iconName: "configure"
+    }
+
+    Action
+    {
         id: updateProfileAction;
-        enabled: UM.ActiveProfile.valid && !UM.ActiveProfile.readOnly && UM.ActiveProfile.hasCustomisedValues
-        text: catalog.i18nc("@action:inmenu menubar:profile","&Update Current Profile");
+        enabled: !Cura.MachineManager.stacksHaveErrors && Cura.MachineManager.hasUserSettings && !Cura.MachineManager.isReadOnly(Cura.MachineManager.activeQualityId)
+        text: catalog.i18nc("@action:inmenu menubar:profile","&Update profile with current settings/overrides");
+        onTriggered: Cura.ContainerManager.updateQualityChanges();
     }
 
     Action
     {
         id: resetProfileAction;
-        enabled: UM.ActiveProfile.valid && UM.ActiveProfile.hasCustomisedValues
-        text: catalog.i18nc("@action:inmenu menubar:profile","&Reload Current Profile");
+        enabled: Cura.MachineManager.hasUserSettings
+        text: catalog.i18nc("@action:inmenu menubar:profile","&Discard current changes");
+        onTriggered:
+        {
+            forceActiveFocus();
+            Cura.ContainerManager.clearUserContainers();
+        }
     }
 
     Action
     {
         id: addProfileAction;
-        enabled: UM.ActiveProfile.valid
-        text: catalog.i18nc("@action:inmenu menubar:profile","&Create New Profile...");
+        enabled: !Cura.MachineManager.stacksHaveErrors && Cura.MachineManager.hasUserSettings
+        text: catalog.i18nc("@action:inmenu menubar:profile","&Create profile from current settings/overrides...");
     }
 
     Action
@@ -132,12 +159,14 @@ Item
         text: catalog.i18nc("@action:inmenu menubar:help","Show Online &Documentation");
         iconName: "help-contents";
         shortcut: StandardKey.Help;
+        onTriggered: CuraActions.openDocumentation();
     }
 
     Action {
         id: reportBugAction;
         text: catalog.i18nc("@action:inmenu menubar:help","Report a &Bug");
         iconName: "tools-report-bug";
+        onTriggered: CuraActions.openBugReportPage();
     }
 
     Action
@@ -154,12 +183,13 @@ Item
         enabled: UM.Controller.toolsEnabled;
         iconName: "edit-delete";
         shortcut: StandardKey.Delete;
+        onTriggered: Printer.deleteSelection();
     }
 
     Action
     {
         id: deleteObjectAction;
-        text: catalog.i18nc("@action:inmenu","Delete Object");
+        text: catalog.i18nc("@action:inmenu","Delete Model");
         enabled: UM.Controller.toolsEnabled;
         iconName: "edit-delete";
     }
@@ -167,69 +197,86 @@ Item
     Action
     {
         id: centerObjectAction;
-        text: catalog.i18nc("@action:inmenu","Ce&nter Object on Platform");
+        text: catalog.i18nc("@action:inmenu","Ce&nter Model on Platform");
     }
 
     Action
     {
         id: groupObjectsAction
-        text: catalog.i18nc("@action:inmenu menubar:edit","&Group Objects");
+        text: catalog.i18nc("@action:inmenu menubar:edit","&Group Models");
         enabled: UM.Scene.numObjectsSelected > 1 ? true: false
         iconName: "object-group"
         shortcut: "Ctrl+G";
+        onTriggered: Printer.groupSelected();
     }
 
     Action
     {
         id: unGroupObjectsAction
-        text: catalog.i18nc("@action:inmenu menubar:edit","Ungroup Objects");
+        text: catalog.i18nc("@action:inmenu menubar:edit","Ungroup Models");
         enabled: UM.Scene.isGroupSelected
         iconName: "object-ungroup"
         shortcut: "Ctrl+Shift+G";
+        onTriggered: Printer.ungroupSelected();
     }
 
     Action
     {
         id: mergeObjectsAction
-        text: catalog.i18nc("@action:inmenu menubar:edit","&Merge Objects");
+        text: catalog.i18nc("@action:inmenu menubar:edit","&Merge Models");
         enabled: UM.Scene.numObjectsSelected > 1 ? true: false
         iconName: "merge";
         shortcut: "Ctrl+Alt+G";
+        onTriggered: Printer.mergeSelected();
     }
 
     Action
     {
         id: multiplyObjectAction;
-        text: catalog.i18nc("@action:inmenu","&Duplicate Object");
+        text: catalog.i18nc("@action:inmenu","&Multiply Model...");
         iconName: "edit-duplicate"
     }
 
     Action
     {
+        id: selectAllAction;
+        text: catalog.i18nc("@action:inmenu menubar:edit","&Select All Models");
+        enabled: UM.Controller.toolsEnabled;
+        iconName: "edit-select-all";
+        shortcut: "Ctrl+A";
+        onTriggered: Printer.selectAll();
+    }
+
+    Action
+    {
         id: deleteAllAction;
-        text: catalog.i18nc("@action:inmenu menubar:edit","&Clear Build Platform");
+        text: catalog.i18nc("@action:inmenu menubar:edit","&Clear Build Plate");
         enabled: UM.Controller.toolsEnabled;
         iconName: "edit-delete";
         shortcut: "Ctrl+D";
+        onTriggered: Printer.deleteAll();
     }
 
     Action
     {
         id: reloadAllAction;
-        text: catalog.i18nc("@action:inmenu menubar:file","Re&load All Objects");
+        text: catalog.i18nc("@action:inmenu menubar:file","Re&load All Models");
         iconName: "document-revert";
+        onTriggered: Printer.reloadAll();
     }
 
     Action
     {
         id: resetAllTranslationAction;
-        text: catalog.i18nc("@action:inmenu menubar:edit","Reset All Object Positions");
+        text: catalog.i18nc("@action:inmenu menubar:edit","Reset All Model Positions");
+        onTriggered: Printer.resetAllTranslation();
     }
 
     Action
     {
         id: resetAllAction;
-        text: catalog.i18nc("@action:inmenu menubar:edit","Reset All Object &Transformations");
+        text: catalog.i18nc("@action:inmenu menubar:edit","Reset All Model &Transformations");
+        onTriggered: Printer.resetAll();
     }
 
     Action
@@ -242,9 +289,29 @@ Item
 
     Action
     {
+        id: loadWorkspaceAction
+        text: catalog.i18nc("@action:inmenu menubar:file","&Open Project...");
+    }
+
+    Action
+    {
         id: showEngineLogAction;
         text: catalog.i18nc("@action:inmenu menubar:help","Show Engine &Log...");
         iconName: "view-list-text";
         shortcut: StandardKey.WhatsThis;
+    }
+
+    Action
+    {
+        id: showProfileFolderAction;
+        text: catalog.i18nc("@action:inmenu menubar:help","Show Configuration Folder");
+    }
+
+
+    Action
+    {
+        id: configureSettingVisibilityAction
+        text: catalog.i18nc("@action:menu", "Configure setting visibility...");
+        iconName: "configure"
     }
 }

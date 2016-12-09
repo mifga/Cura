@@ -1,25 +1,28 @@
 # Copyright (c) 2015 Ultimaker B.V.
 # Cura is released under the terms of the AGPLv3 or higher.
 
-from UM.Application import Application #To get the machine manager to create the new profile in.
-from UM.Settings.Profile import Profile
-from UM.Settings.ProfileReader import ProfileReader
-from UM.Logger import Logger
 import re #Regular expressions for parsing escape characters in the settings.
+import json
 
+from UM.Settings.InstanceContainer import InstanceContainer
+from UM.Logger import Logger
+from UM.i18n import i18nCatalog
+catalog = i18nCatalog("cura")
+
+from cura.ProfileReader import ProfileReader
 
 ##  A class that reads profile data from g-code files.
 #
 #   It reads the profile data from g-code files and stores it in a new profile.
 #   This class currently does not process the rest of the g-code in any way.
 class GCodeProfileReader(ProfileReader):
-    ##  The file format version of the serialised g-code.
+    ##  The file format version of the serialized g-code.
     #
     #   It can only read settings with the same version as the version it was
     #   written with. If the file format is changed in a way that breaks reverse
     #   compatibility, increment this version number!
-    version = 1
-    
+    version = 3
+
     ##  Dictionary that defines how characters are escaped when embedded in
     #   g-code.
     #
@@ -51,31 +54,57 @@ class GCodeProfileReader(ProfileReader):
         # Loading all settings from the file.
         # They are all at the end, but Python has no reverse seek any more since Python3.
         # TODO: Consider moving settings to the start?
-        serialised = ""  # Will be filled with the serialised profile.
+        serialized = ""  # Will be filled with the serialized profile.
         try:
             with open(file_name) as f:
                 for line in f:
                     if line.startswith(prefix):
                         # Remove the prefix and the newline from the line and add it to the rest.
-                        serialised += line[prefix_length : -1]
+                        serialized += line[prefix_length : -1]
         except IOError as e:
             Logger.log("e", "Unable to open file %s for reading: %s", file_name, str(e))
             return None
 
-        # Un-escape the serialised profile.
-        pattern = re.compile("|".join(GCodeProfileReader.escape_characters.keys()))
+        serialized = unescapeGcodeComment(serialized)
+        Logger.log("i", "Serialized the following from %s: %s" %(file_name, repr(serialized)))
 
-        # Perform the replacement with a regular expression.
-        serialised = pattern.sub(lambda m: GCodeProfileReader.escape_characters[re.escape(m.group(0))], serialised)
+        json_data = json.loads(serialized)
 
-        # Apply the changes to the current profile.
-        profile = Profile(machine_manager = Application.getInstance().getMachineManager(), read_only = False)
-        try:
-            profile.unserialise(serialised)
-            profile.setType(None)  # Force type to none so it's correctly added.
-            profile.setReadOnly(False)
-            profile.setDirty(True)
-        except Exception as e:  # Not a valid g-code file.
-            Logger.log("e", "Unable to serialise the profile: %s", str(e))
-            return None
-        return profile
+        profiles = []
+        global_profile = readQualityProfileFromString(json_data["global_quality"])
+
+        # This is a fix for profiles created with 2.3.0 For some reason it added the "extruder" property to the
+        # global profile.
+        # The fix is simple and safe, as a global profile should never have the extruder entry.
+        if global_profile.getMetaDataEntry("extruder", None) is not None:
+            global_profile.setMetaDataEntry("extruder", None)
+        profiles.append(global_profile)
+
+        for profile_string in json_data.get("extruder_quality", []):
+            profiles.append(readQualityProfileFromString(profile_string))
+        return profiles
+
+##  Unescape a string which has been escaped for use in a gcode comment.
+#
+#   \param string The string to unescape.
+#   \return \type{str} The unscaped string.
+def unescapeGcodeComment(string):
+    # Un-escape the serialized profile.
+    pattern = re.compile("|".join(GCodeProfileReader.escape_characters.keys()))
+
+    # Perform the replacement with a regular expression.
+    return pattern.sub(lambda m: GCodeProfileReader.escape_characters[re.escape(m.group(0))], string)
+
+##  Read in a profile from a serialized string.
+#
+#   \param profile_string The profile data in serialized form.
+#   \return \type{Profile} the resulting Profile object or None if it could not be read.
+def readQualityProfileFromString(profile_string):
+    # Create an empty profile - the id and name will be changed by the ContainerRegistry
+    profile = InstanceContainer("")
+    try:
+        profile.deserialize(profile_string)
+    except Exception as e:  # Not a valid g-code file.
+        Logger.log("e", "Unable to serialise the profile: %s", str(e))
+        return None
+    return profile
